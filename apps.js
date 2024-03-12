@@ -21,6 +21,21 @@ heroImage.onload = function () {
 };
 heroImage.src = "images/hero.png";
 
+//creating a new hero using sprite sheet
+let heroSheetReady = false; 
+let herosheetImage = new Image();
+herosheetImage.onLoad = function(){
+    heroSheetReady= true;
+}
+herosheetImage.src = "images/mainGuy.png"; 
+//define dimension of each frame
+let frameWidth = 100;
+let frameHeight = 100; 
+//define current frame index and direction of the hero
+let currentFrameIndex = 0;
+let direction = "down"; //initial direction
+//  END of HERO using sprite sheet
+
 // Monster image
 let monsterReady = false;
 let monsterImage = new Image();
@@ -113,6 +128,12 @@ let render = function () {
 
 // The main game loop
 let main = function () {
+    //stopping the game after 10 points
+    if (monstersCaught>=10){
+        alert("Game Over, Press F5 to play again")
+        return; // stopping the game
+    }
+
     let now = Date.now();
     let delta = now - then;
     update(delta / 1100);
