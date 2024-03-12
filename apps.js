@@ -13,28 +13,40 @@ bgImage.onload = function () {
 };
 bgImage.src = "images/background.png";
 
-// Hero image
 let heroReady = false;
 let heroImage = new Image();
-heroImage.onload = function () {
+heroImage.onload = function(){
     heroReady = true;
 };
-heroImage.src = "images/hero.png";
+//changing hero images to sprite sheet
+heroImage.src = "images/mainGuy_resize.png"; //using the mainGuy
 
-//creating a new hero using sprite sheet
-let heroSheetReady = false; 
-let herosheetImage = new Image();
-herosheetImage.onLoad = function(){
-    heroSheetReady= true;
-}
-herosheetImage.src = "images/mainGuy.png"; 
-//define dimension of each frame
-let frameWidth = 100;
-let frameHeight = 100; 
-//define current frame index and direction of the hero
-let currentFrameIndex = 0;
-let direction = "down"; //initial direction
-//  END of HERO using sprite sheet
+//adding sprite sheet variables
+var rows = 4; //sprite sheet has 4 rows
+var cols = 6; //spite sheet has 6 columns
+
+//second row for left movement counting from index 0
+var trackLeft = 1; 
+//third row for right movement counting from index 0
+var trackRight = 3; 
+var trackUp = 0; //not using up and down 
+var trackDown = 2; // might have to change
+
+var spriteWidth = 200;
+var spriteHeight = 200; 
+var width = spriteWidth / cols;
+var height = spriteHeight / rows;
+
+var curXFrame = 0; // start on left side
+var frameCount = 4; // 3 frames per rows
+
+//x and y coord of the overall sprite image to get the single frame we want
+var srcX = 0; // assuming image has no borders and other stuff
+var srcY = 0;
+
+//assuming the at start the character will move right side
+var left = false; 
+var right = true;
 
 // Monster image
 let monsterReady = false;
@@ -43,8 +55,6 @@ monsterImage.onload = function () {
     monsterReady = true;
 };
 monsterImage.src = "images/monster.png";
-
-//========= end of creating image objects =====================
 
 // Game objects
 let hero = {
@@ -59,14 +69,12 @@ let monster = {
 };
 let monstersCaught = 0;
 
-//================ done creating other variables =================
-
 // Handle keyboard controls
 let keysDown = {}; //object were we properties when keys go down
 // and then delete them when the key goes up
 // so the object tells us if any key is down when that keycode
 // is down. In our game loop, we will move the hero image if when
-// we go thru render, a key is down
+// we go through render, a key is down
 addEventListener("keydown", function (e) {
     //console.log(e.keyCode + " down")
     keysDown[e.keyCode] = true;
@@ -78,17 +86,25 @@ addEventListener("keyup", function (e) {
 
 // Update game objects
 let update = function (modifier) {
-    if (38 in keysDown && hero.y > 32 + 0) { // holding up key
-        hero.y -= hero.speed * modifier;
-    }
-    if (40 in keysDown && hero.y < canvas.height - (64 + 0)) { // holding down key
-        hero.y += hero.speed * modifier;
-    }
-    if (37 in keysDown && hero.x > (32 + 0)) { // holding left key
+    //update code for sprite
+
+    //clear last hero image position and assume he is not moving left or right 
+    ctx.clearRect(hero.x, hero.y, width, height);
+    left = false; 
+    right = false; 
+
+    // decide if they are moving left or right and set those 
+    if (37 in keysDown && hero.x > (32 + 4)){ //holding left key
         hero.x -= hero.speed * modifier;
+        left = true; //for animation
+        right = false; // for animation
     }
-    if (39 in keysDown && hero.x < canvas.width - (64 + 0)) { // holding right key
+
+    if (39 in keysDown && hero.x < canvas.width + (96 + 2)){
+        //holding right key
         hero.x += hero.speed * modifier;
+        left = false;//for animation 
+        right = true;// for animation
     }
 
     // Are they touching?
@@ -101,21 +117,52 @@ let update = function (modifier) {
         ++monstersCaught; // keep track of our “score”
         reset(); // start a new cycle
     }
+
+    //add code to pick one of the frame of the sprite sheet
+    //curXFrame = ++curXFrame % frameCount; //update sprite sheet frame index
+    var counter = 0;
+    if (counter == 5){
+        //change the walking speed
+        curXFrame = ++curXFrame % frameCount; 
+        counter = 0;
+    }
+    else{
+        counter++;
+    }
+
+    
+    srcX = curXFrame * width;
+    if (left){
+        //calculate Y src 
+        srcY = trackLeft * height; 
+    }
+    if (right){
+        srcY = trackRight * height; 
+    }
+    if (left == false && right == false){
+        srcX = 1 * width;
+        srcY = 2 * height;
+    }
 };
 
-// Draw everything in the main render function
+
 let render = function () {
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (bgReady) {
-    ctx.drawImage(bgImage, 0, 0);
+        ctx.drawImage(bgImage, 0, 0);
     }
-
-    if (heroReady) {
-        ctx.drawImage(heroImage, hero.x, hero.y);
-    }
-
+    // Draw the monster
     if (monsterReady) {
         ctx.drawImage(monsterImage, monster.x, monster.y);
+    }
+    // draw the hero
+    if (heroReady) {
+        //ctx.drawImage(heroImage, hero.x, hero.y);
+        //ctx.globalCompositeOperation = "destination-in";
+        ctx.drawImage(heroImage, srcX, srcY, width, height, hero.x, hero.y, width, height);
+        //ctx.globalCompositeOperation = "source-over";
     }
 
     // Score
@@ -125,6 +172,8 @@ let render = function () {
     ctx.textBaseline = "top";
     ctx.fillText("Goblins caught: " + monstersCaught, 32, 32);
 }
+
+
 
 // The main game loop
 let main = function () {
