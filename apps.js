@@ -26,14 +26,14 @@ var rows = 4; //sprite sheet has 4 rows
 var cols = 6; //spite sheet has 6 columns
 
 //second row for left movement counting from index 0
-var trackLeft = 1; 
+var trackLeft = 2; 
 //third row for right movement counting from index 0
-var trackRight = 3; 
-var trackUp = 0; //not using up and down 
-var trackDown = 2; // might have to change
+var trackRight = 1; 
+var trackUp = 3; //not using up and down 
+var trackDown = 0; // might have to change
 
-var spriteWidth = 200;
-var spriteHeight = 200; 
+var spriteWidth =289;
+var spriteHeight = 192; 
 var width = spriteWidth / cols;
 var height = spriteHeight / rows;
 
@@ -47,6 +47,10 @@ var srcY = 0;
 //assuming the at start the character will move right side
 var left = false; 
 var right = true;
+
+//adding up and right for the hero
+var up = false;
+var down =true; 
 
 // Monster image
 let monsterReady = false;
@@ -106,6 +110,16 @@ let update = function (modifier) {
         left = false;//for animation 
         right = true;// for animation
     }
+    if (38 in keysDown && hero.y > 0) { // Up key
+        hero.y -= hero.speed * modifier;
+        up = true;
+        down = false; 
+    }
+    if (40 in keysDown && hero.y < canvas.height - height) { // Down key
+        hero.y += hero.speed * modifier;
+        down = true;
+        up = false; 
+    }
 
     // Are they touching?
     if (
@@ -132,16 +146,34 @@ let update = function (modifier) {
 
     
     srcX = curXFrame * width;
-    if (left){
-        //calculate Y src 
-        srcY = trackLeft * height; 
+    // if (left){
+    //     //calculate Y src 
+    //     srcY = trackLeft * height; 
+    // }
+    // if (right){
+    //     srcY = trackRight * height; 
+    // }
+    // if (left == false && right == false){
+    //     srcX = 1 * width;
+    //     srcY = 2 * height;
+    // }
+
+    if (left || right) {
+        curXFrame = ++curXFrame % frameCount;
     }
-    if (right){
-        srcY = trackRight * height; 
+    if (up || down) {
+        curXFrame = 1; // Fixed frame for up and down movement
     }
-    if (left == false && right == false){
-        srcX = 1 * width;
-        srcY = 2 * height;
+
+    srcX = curXFrame * width;
+    if (left) {
+        srcY = trackLeft * height;
+    } else if (right) {
+        srcY = trackRight * height;
+    } else if (up) {
+        srcY = trackUp * height;
+    } else if (down) {
+        srcY = trackDown * height;
     }
 };
 
