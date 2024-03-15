@@ -5,6 +5,19 @@ canvas.width = 600;
 canvas.height = 523;
 document.body.appendChild(canvas);
 
+// Chessboard representation
+let chessBoard = [
+    ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
+    ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
+    ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
+    ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
+    ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
+    ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
+    ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
+    ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
+    ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
+];
+
 // Background image
 let bgReady = false;
 let bgImage = new Image();
@@ -47,13 +60,13 @@ leftImage.src = "images/rockBorderLeft.png";
 
 
 // main guy image
-let heroReady = false;
-let heroImage = new Image();
-heroImage.onload = function(){
-    heroReady = true;
+let guyReady = false;
+let guyImage = new Image();
+guyImage.onload = function(){
+    guyReady = true;
 };
-//changing hero images to sprite sheet
-heroImage.src = "images/mainGuy.png"; //using the mainGuy
+//changing guy images to sprite sheet
+guyImage.src = "images/mainGuy.png"; //using the mainGuy
 
 //adding sprite sheet variables
 var rows = 4; //sprite sheet has 4 rows
@@ -82,7 +95,7 @@ var srcY = 0;
 var left = false; 
 var right = true;
 
-//adding up and right for the hero
+//adding up and right for the guy
 var up = false;
 var down = true; 
 
@@ -110,7 +123,7 @@ sheep3Image.onload = function () {
 };
 sheep3Image.src = "images/sheep.png";
 
-// wolf image
+// wolf image 1
 let wolfReady = false;
 let wolfImage = new Image();
 wolfImage.onload = function () {
@@ -118,9 +131,24 @@ wolfImage.onload = function () {
 };
 wolfImage.src = "images/wolf.png";
 
+// wolf image 2
+let wolf2Ready = false;
+let wolf2Image = new Image();
+wolf2Image.onload = function () {
+    wolf2Ready = true;
+};
+wolf2Image.src = "images/wolf.png";
+
+// wolf image 3
+let wolf3Ready = false;
+let wolf3Image = new Image();
+wolf3Image.onload = function () {
+    wolf3Ready = true;
+};
+wolf3Image.src = "images/wolf.png";
 
 // Game objects
-let hero = {
+let guy = {
     speed: 100, // movement in pixels per second
     x: 0, // where on the canvas are they?
     y: 0 // where on the canvas are they?
@@ -150,11 +178,21 @@ let wolf = {
     y: 0
 }
 
+let wolf2 = {
+    x: 0,
+    y: 0
+}
+
+let wolf3 = {
+    x: 0,
+    y: 0
+}
+
 // Handle keyboard controls
 let keysDown = {}; //object were we properties when keys go down
 // and then delete them when the key goes up
 // so the object tells us if any key is down when that keycode
-// is down. In our game loop, we will move the hero image if when
+// is down. In our game loop, we will move the guy image if when
 // we go through render, a key is down
 addEventListener("keydown", function (e) {
     //console.log(e.keyCode + " down")
@@ -169,47 +207,48 @@ let sheepPresent = true;
 let sheep2Present = true;
 let sheep3Present = true;
 let gameOver = false;
+let died = false;
 
 // Update game objects
 let update = function (modifier) {
     //update code for sprite
 
-    //clear last hero image position and assume he is not moving left or right 
-    ctx.clearRect(hero.x, hero.y, width, height);
+    //clear last guy image position and assume he is not moving left or right 
+    ctx.clearRect(guy.x, guy.y, width, height);
     left = false; 
     right = false; 
 
     // decide if they are moving left or right and set those 
-    if (37 in keysDown && hero.x > 24) { // Left key
-        hero.x -= hero.speed * modifier;
+    if (37 in keysDown && guy.x > 15) { // Left key
+        guy.x -= guy.speed * modifier;
         left = true; //for animation
         right = false; // for animation
     }
     
-    if (39 in keysDown && hero.x < canvas.width - 24 - width) { // Right key
-        hero.x += hero.speed * modifier;
+    if (39 in keysDown && guy.x < canvas.width - 15 - width) { // Right key
+        guy.x += guy.speed * modifier;
         left = false; //for animation
         right = true; // for animation
     }
     
-    if (38 in keysDown && hero.y > 24) { // Up key
-        hero.y -= hero.speed * modifier;
+    if (38 in keysDown && guy.y > 24) { // Up key
+        guy.y -= guy.speed * modifier;
         up = true;
         down = false; 
     }
     
-    if (40 in keysDown && hero.y < canvas.height - 24 - height) { // Down key
-        hero.y += hero.speed * modifier;
+    if (40 in keysDown && guy.y < canvas.height - 24 - height) { // Down key
+        guy.y += guy.speed * modifier;
         down = true;
         up = false; 
     }
 
     // Are they touching? sheep 1
     if (
-        hero.x <= (sheep.x + 23)
-        && sheep.x <= (hero.x + 40)
-        && hero.y <= (sheep.y + 33)
-        && sheep.y <= (hero.y + 42)
+        guy.x <= (sheep.x + 23)
+        && sheep.x <= (guy.x + 40)
+        && guy.y <= (sheep.y + 33)
+        && sheep.y <= (guy.y + 42)
     ) {
         //sheepsCaught += 1; // keep track of our “score”
         sheepPresent = false;
@@ -217,10 +256,10 @@ let update = function (modifier) {
 
     // Are they touching? sheep 2
     if (
-        hero.x <= (sheep2.x + 23)
-        && sheep2.x <= (hero.x + 40)
-        && hero.y <= (sheep2.y + 33)
-        && sheep2.y <= (hero.y + 42)
+        guy.x <= (sheep2.x + 23)
+        && sheep2.x <= (guy.x + 40)
+        && guy.y <= (sheep2.y + 33)
+        && sheep2.y <= (guy.y + 42)
     ) {
         //sheepsCaught += 1; // keep track of our “score”
         sheep2Present = false;
@@ -228,21 +267,41 @@ let update = function (modifier) {
 
     // Are they touching? sheep 3
     if (
-        hero.x <= (sheep3.x + 23)
-        && sheep3.x <= (hero.x + 40)
-        && hero.y <= (sheep3.y + 33)
-        && sheep3.y <= (hero.y + 42)
+        guy.x <= (sheep3.x + 23)
+        && sheep3.x <= (guy.x + 40)
+        && guy.y <= (sheep3.y + 33)
+        && sheep3.y <= (guy.y + 42)
     ) {
         //sheepsCaught += 1; // keep track of our “score”
         sheep3Present = false;
     }
 
-    // Check for collision with hero
+    // Check for collision with wolf1
     if (
-        hero.x <= (wolf.x + 25)
-        && wolf.x <= (hero.x + 25)
-        && hero.y <= (wolf.y + 45)
-        && wolf.y <= (hero.y + 45)
+        guy.x <= (wolf.x + 25)
+        && wolf.x <= (guy.x + 25)
+        && guy.y <= (wolf.y + 45)
+        && wolf.y <= (guy.y + 45)
+    ) {
+        gameOver = true; 
+    }
+
+    // Check for collision with wolf2
+    if (
+        guy.x <= (wolf2.x + 25)
+        && wolf2.x <= (guy.x + 25)
+        && guy.y <= (wolf2.y + 45)
+        && wolf2.y <= (guy.y + 45)
+    ) {
+        gameOver = true; 
+    }
+
+    // Check for collision with wolf3
+    if (
+        guy.x <= (wolf3.x + 25)
+        && wolf3.x <= (guy.x + 25)
+        && guy.y <= (wolf3.y + 45)
+        && wolf3.y <= (guy.y + 45)
     ) {
         gameOver = true; 
     }
@@ -351,16 +410,26 @@ let render = function () {
         ctx.drawImage(sheep3Image, sheep3.x, sheep3.y);
     }
 
-    // Draw the wolf
+    // Draw the wolf 1
     if (wolfReady) {
         ctx.drawImage(wolfImage, wolf.x, wolf.y);
     }
 
-    // draw the hero
-    if (heroReady) {
-        //ctx.drawImage(heroImage, hero.x, hero.y);
+    // Draw the wolf 2
+    if (wolf2Ready) {
+        ctx.drawImage(wolf2Image, wolf2.x, wolf2.y);
+    }
+
+    // Draw the wolf 3
+    if (wolf3Ready) {
+        ctx.drawImage(wolf3Image, wolf3.x, wolf3.y);
+    }
+
+    // draw the guy
+    if (guyReady) {
+        //ctx.drawImage(guyImage, guy.x, guy.y);
         //ctx.globalCompositeOperation = "destination-in";
-        ctx.drawImage(heroImage, srcX, srcY, width, height, hero.x, hero.y, width, height);
+        ctx.drawImage(guyImage, srcX, srcY, width, height, guy.x, guy.y, width, height);
         //ctx.globalCompositeOperation = "source-over";
     }
 
@@ -378,6 +447,10 @@ let render = function () {
 let main = function () {
     //stopping the game after 10 points
     if (!sheepPresent && !sheep2Present && !sheep3Present){
+        sheepsCaught += 1;
+        reset();
+    }
+    if (sheepsCaught == 5){
         alert("You won the game, Press F5 to play again")
         return; // stopping the game
     }
@@ -392,24 +465,54 @@ let main = function () {
     requestAnimationFrame(main);
 };
 
+let placeItem = function (character) {
+    let X, Y;
+    let success = false;
+    while (!success) {
+        X = Math.floor(Math.random() * 6) + 1; // Random number between 1 and 6
+        Y = Math.floor(Math.random() * 6) + 1; // Random number between 1 and 6
+
+        if (chessBoard[X][Y] === 'x' &&
+            (Math.abs(X * 75 + 27 + 24 - guy.x) > 48 || Math.abs(Y * 65 + 27 + 24 - guy.y) > 48)) {
+            success = true;
+        }
+    }
+    chessBoard[X][Y] = 'O';
+    character.x = (X * 75) + 27 + 24; // Adjusted spawn position with border width
+    character.y = (Y * 65) + 27 + 24; // Adjusted spawn position with border height
+}
+
+
 // Reset the game when the player catches a sheep
 let reset = function () {
-    hero.x = (canvas.width / 2) - 16;
-    hero.y = (canvas.height / 2) - 16;
-    //Place the sheep somewhere on the screen randomly
-    // but not in the hedges, Article in wrong, the 64 needs to be
-    // hedge 32 + hedge 32 + char 32 = 96
-    sheep.x = 32 + (Math.random() * (canvas.width - 94));
-    sheep.y = 32 + (Math.random() * (canvas.height - 87));
+    if (died == true) {
+        alert("you died")
+    } else {
+        // Clear chessboard
+        for (let i = 0; i < chessBoard.length; i++) {
+            for (let j = 0; j < chessBoard[i].length; j++) {
+                chessBoard[i][j] = 'x';
+            }
+        }
 
-    sheep2.x = 32 + (Math.random() * (canvas.width - 94));
-    sheep2.y = 32 + (Math.random() * (canvas.height - 87));
+        guy.x = (canvas.width / 2) - 16;
+        guy.y = (canvas.height / 2) - 16;
 
-    sheep3.x = 32 + (Math.random() * (canvas.width - 94));
-    sheep3.y = 32 + (Math.random() * (canvas.height - 87));
+        placeItem(sheep);
+        placeItem(sheep2);
+        placeItem(sheep3);
+        placeItem(wolf);
+        placeItem(wolf2);
+        placeItem(wolf3);
+    }
 
-    wolf.x = 32 + (Math.random() * (canvas.width - 94));
-    wolf.y = 32 + (Math.random() * (canvas.height - 106));
+     // Reset sheep present flags
+     sheepPresent = true;
+     sheep2Present = true;
+     sheep3Present = true;
+ 
+     // Reset game over flag
+     gameOver = false;
 };
 
 // Let's play this game!
