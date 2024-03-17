@@ -5,6 +5,8 @@ canvas.width = 600;
 canvas.height = 523;
 document.body.appendChild(canvas);
 
+//back ground music
+
 // Chessboard representation
 let chessBoard = [
     ['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x','x'],
@@ -194,6 +196,14 @@ let wolf3 = {
 //adding wolf speed
 let wolfspeed= 80; //adjust this for wolf speed
 
+// 
+//audio Section
+
+//define sheep sound
+let sheepSound= document.getElementById('sheepSound');
+let guyScream = document.getElementById('guyScream');
+
+
 
 
 // Handle keyboard controls
@@ -260,6 +270,7 @@ let update = function (modifier) {
     ) {
         //sheepsCaught += 1; // keep track of our “score”
         sheepPresent = false;
+        sheepSound.play();
     }
 
     // Are they touching? sheep 2
@@ -271,6 +282,7 @@ let update = function (modifier) {
     ) {
         //sheepsCaught += 1; // keep track of our “score”
         sheep2Present = false;
+        sheepSound.play();
     }
 
     // Are they touching? sheep 3
@@ -282,6 +294,7 @@ let update = function (modifier) {
     ) {
         //sheepsCaught += 1; // keep track of our “score”
         sheep3Present = false;
+        sheepSound.play();
     }
 
     // Check for collision with wolf1
@@ -291,6 +304,7 @@ let update = function (modifier) {
         && guy.y <= (wolf.y + 45)
         && wolf.y <= (guy.y + 45)
     ) {
+        guyScream.play();
         gameOver = true; 
     }
 
@@ -301,6 +315,7 @@ let update = function (modifier) {
         && guy.y <= (wolf2.y + 45)
         && wolf2.y <= (guy.y + 45)
     ) {
+        guyScream.play();
         gameOver = true; 
     }
 
@@ -311,6 +326,7 @@ let update = function (modifier) {
         && guy.y <= (wolf3.y + 45)
         && wolf3.y <= (guy.y + 45)
     ) {
+        guyScream.play();
         gameOver = true; 
     }
 
@@ -474,6 +490,9 @@ let render = function () {
 
 // The main game loop
 let main = function () {
+    let bgMusic = document.getElementById('Music');
+    bgMusic.play();
+
     //stopping the game after 10 points
     if (!sheepPresent && !sheep2Present && !sheep3Present){
         sheepsCaught += 1;
