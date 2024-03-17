@@ -117,8 +117,8 @@ let update = function (modifier) {
     }
     if (40 in keysDown && hero.y < canvas.height - height) { // Down key
         hero.y += hero.speed * modifier;
-        down = true;
-        up = false; 
+        down = true; //for animation
+        up = false;  //for animation
     }
 
     // Are they touching?
@@ -143,8 +143,7 @@ let update = function (modifier) {
     else{
         counter++;
     }
-
-    
+   
     srcX = curXFrame * width;
     // if (left){
     //     //calculate Y src 
