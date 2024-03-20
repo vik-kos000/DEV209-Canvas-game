@@ -225,40 +225,76 @@ let sheep2Present = true;
 let sheep3Present = true;
 let gameOver = false;
 let died = false;
+var counter = 0;
+let isMoving = false;
 
 // Update game objects
 let update = function (modifier) {
-    //update code for sprite
+    // Update code for sprite
 
-    //clear last guy image position and assume he is not moving left or right 
+    // Clear last guy image position and assume he is not moving left or right 
     ctx.clearRect(guy.x, guy.y, width, height);
     left = false; 
     right = false; 
+    up = false;
+    down = false;
 
-    // decide if they are moving left or right and set those 
-    if (37 in keysDown && guy.x > 15) { // Left key
+    // Check for arrow key presses
+    if ((37 in keysDown && 38 in keysDown) && (guy.x > 15 && guy.y > 24)) { // Left key and Up key
+        guy.x -= guy.speed * modifier * 0.75;
+        guy.y -= guy.speed * modifier * 0.75;
+        left = true;
+        up = true;
+        isMoving = true;
+    }
+    else if ((37 in keysDown && 40 in keysDown) && (guy.x > 15 && guy.y < canvas.height - 24 - height)) { // Left key and Down key
+        guy.x -= guy.speed * modifier * 0.75;
+        guy.y += guy.speed * modifier * 0.75;
+        left = true;
+        down = true;
+        isMoving = true;
+    }
+    else if ((39 in keysDown && 38 in keysDown) && (guy.x < canvas.width - 15 - width && guy.y > 24)) { // Right key and Up key
+        guy.x += guy.speed * modifier * 0.75;
+        guy.y -= guy.speed * modifier * 0.75;
+        right = true;
+        up = true;
+        isMoving = true;
+    }
+    else if ((39 in keysDown && 40 in keysDown) && (guy.x < canvas.width - 15 - width && guy.y < canvas.height - 24 - height)) { // Right key and Down key
+        guy.x += guy.speed * modifier * 0.75;
+        guy.y += guy.speed * modifier * 0.75;
+        right = true;
+        down = true;
+        isMoving = true;
+    }
+    else if (37 in keysDown && guy.x > 15) { // Left key
         guy.x -= guy.speed * modifier;
-        left = true; //for animation
-        right = false; // for animation
+        left = true;
+        isMoving = true;
     }
-    
-    if (39 in keysDown && guy.x < canvas.width - 15 - width) { // Right key
+    else if (39 in keysDown && guy.x < canvas.width - 15 - width) { // Right key
         guy.x += guy.speed * modifier;
-        left = false; //for animation
-        right = true; // for animation
+        right = true;
+        isMoving = true;
     }
-    
-    if (38 in keysDown && guy.y > 24) { // Up key
+    else if (38 in keysDown && guy.y > 24) { // Up key
         guy.y -= guy.speed * modifier;
         up = true;
-        down = false; 
+        isMoving = true;
     }
-    
-    if (40 in keysDown && guy.y < canvas.height - 24 - height) { // Down key
+    else if (40 in keysDown && guy.y < canvas.height - 24 - height) { // Down key
         guy.y += guy.speed * modifier;
         down = true;
-        up = false; 
+        isMoving = true;
     }
+    else {
+        isMoving = false; // character is not moving
+    }
+
+
+
+
 
     // Are they touching? sheep 1
     if (
@@ -357,23 +393,14 @@ let update = function (modifier) {
 
     //add code to pick one of the frame of the sprite sheet
     //curXFrame = ++curXFrame % frameCount; //update sprite sheet frame index
-    var counter = 0;
-    if (counter == 5){
+
+    if (counter == 8){
         //change the walking speed
         curXFrame = ++curXFrame % frameCount; 
         counter = 0;
     }
     else{
         counter++;
-    }
-   
-    srcX = curXFrame * width;
-
-    if (left || right) {
-        curXFrame = ++curXFrame % frameCount;
-    }
-    if (up || down) {
-        curXFrame = 1; // Fixed frame for up and down movement
     }
 
     srcX = curXFrame * width;
@@ -445,11 +472,15 @@ let render = function () {
 
     // draw the guy
     if (guyReady) {
-        //ctx.drawImage(guyImage, guy.x, guy.y);
-        //ctx.globalCompositeOperation = "destination-in";
-        ctx.drawImage(guyImage, srcX, srcY, width, height, guy.x, guy.y, width, height);
-        //ctx.globalCompositeOperation = "source-over";
+        if (isMoving) {
+            // Draw the walking animation
+            ctx.drawImage(guyImage, srcX, srcY, width, height, guy.x, guy.y, width, height);
+        } else {
+            // Draw the idle animation
+            ctx.drawImage(guyImage, (frameCount - 1) * width, srcY, width, height, guy.x, guy.y, width, height);
+        }
     }
+
 
     // Score
     ctx.fillStyle = "rgb(250, 250, 250)";
