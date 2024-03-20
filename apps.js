@@ -1,11 +1,10 @@
+
 // create a canvas
 let canvas = document.createElement("canvas");
 let ctx = canvas.getContext("2d");
 canvas.width = 600;
 canvas.height = 523;
 document.body.appendChild(canvas);
-
-//back ground music
 
 // Chessboard representation
 let chessBoard = [
@@ -267,6 +266,7 @@ let update = function (modifier) {
         && sheep.x <= (guy.x + 40)
         && guy.y <= (sheep.y + 33)
         && sheep.y <= (guy.y + 42)
+        && sheepPresent
     ) {
         //sheepsCaught += 1; // keep track of our “score”
         sheepPresent = false;
@@ -279,6 +279,7 @@ let update = function (modifier) {
         && sheep2.x <= (guy.x + 40)
         && guy.y <= (sheep2.y + 33)
         && sheep2.y <= (guy.y + 42)
+        && sheep2Present
     ) {
         //sheepsCaught += 1; // keep track of our “score”
         sheep2Present = false;
@@ -291,6 +292,7 @@ let update = function (modifier) {
         && sheep3.x <= (guy.x + 40)
         && guy.y <= (sheep3.y + 33)
         && sheep3.y <= (guy.y + 42)
+        && sheep3Present
     ) {
         //sheepsCaught += 1; // keep track of our “score”
         sheep3Present = false;
@@ -304,7 +306,6 @@ let update = function (modifier) {
         && guy.y <= (wolf.y + 45)
         && wolf.y <= (guy.y + 45)
     ) {
-        guyScream.play();
         gameOver = true; 
     }
 
@@ -315,7 +316,6 @@ let update = function (modifier) {
         && guy.y <= (wolf2.y + 45)
         && wolf2.y <= (guy.y + 45)
     ) {
-        guyScream.play();
         gameOver = true; 
     }
 
@@ -326,50 +326,34 @@ let update = function (modifier) {
         && guy.y <= (wolf3.y + 45)
         && wolf3.y <= (guy.y + 45)
     ) {
-        guyScream.play();
         gameOver = true; 
     }
 
     //adding wolf movements 
-    //wolf 1 position
-    wolf.x += wolfspeed * modifier * wolf.direction; 
-    //if wolf reaches bondaries
-    if (wolf.x <= 0 || wolf.x >= canvas.width ) {
-        wolf.direction *= -1; // Reverse direction
+    // Update wolf movement
+    updateWolf = function(wolf) {
+        wolf.x += wolfspeed * modifier * wolf.direction; 
+        // Check if wolf reaches the left or right boundary
+        if (wolf.x <= 0 || wolf.x >= canvas.width - 70) {
+            wolf.direction *= -1; // Reverse direction
+        }
     }
 
-    //wolf 2 postions
-    wolf2.x += wolfspeed * modifier * wolf.direction; 
-    //if wolf reaches bondaries
-    if (wolf2.x <= 0 || wolf2.x >= canvas.width) {
-        wolf2.direction *= -1; // Reverse direction
-    }
+    // Call updateWolf for each wolf object
+    updateWolf(wolf);
+    updateWolf(wolf2);
+    updateWolf(wolf3);
 
-    //wolf 3 positions
-    wolf3.x += wolfspeed * modifier * wolf.direction; 
-    //if wolf reaches bondaries
-    if (wolf3.x <= 0 || wolf3.x >= canvas.width) {
-        wolf3.direction *= -1; // Reverse direction
-    }
+
 
     // Check if game is over
     if (gameOver) {
         // Perform end-game actions
+        guyScream.play();
         alert("Game Over! You were caught by the wolf. Press F5 to play again.");
         return; // Stop updating game objects
     }
-
-    // Check for collision between sheep and wolf
-    if (
-        sheep.x <= (wolf.x + 23)
-        && wolf.x <= (sheep.x + 40)
-        && sheep.y <= (wolf.y + 33)
-        && wolf.y <= (sheep.y + 32)
-    ) {
-        // Handle collision here, such as resetting the game
-        reset(); // Restart the game
-    }
-
+    
 
     //add code to pick one of the frame of the sprite sheet
     //curXFrame = ++curXFrame % frameCount; //update sprite sheet frame index
@@ -384,17 +368,6 @@ let update = function (modifier) {
     }
    
     srcX = curXFrame * width;
-    // if (left){
-    //     //calculate Y src 
-    //     srcY = trackLeft * height; 
-    // }
-    // if (right){
-    //     srcY = trackRight * height; 
-    // }
-    // if (left == false && right == false){
-    //     srcX = 1 * width;
-    //     srcY = 2 * height;
-    // }
 
     if (left || right) {
         curXFrame = ++curXFrame % frameCount;
@@ -483,7 +456,7 @@ let render = function () {
     ctx.font = "24px Helvetica";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillText("Sheep saved: " + sheepsCaught, 32, 32);
+    ctx.fillText("Level: " + sheepsCaught, 32, 32);
 }
 
 
@@ -492,15 +465,19 @@ let render = function () {
 let main = function () {
     let bgMusic = document.getElementById('Music');
     bgMusic.play();
-
-    //stopping the game after 10 points
+    //stopping the game after all sheep are collected
     if (!sheepPresent && !sheep2Present && !sheep3Present){
         sheepsCaught += 1;
         reset();
     }
     if (sheepsCaught == 5){
-        alert("You won the game, Press F5 to play again")
+        alert("You won the game, Press F5 to play again.") 
+        bgMusic.pause();
         return; // stopping the game
+    }
+    // Stop the background music when the game is over
+    if (gameOver) {
+        bgMusic.pause();
     }
     if (gameOver) return;
 
@@ -530,6 +507,24 @@ let placeItem = function (character) {
     character.y = (Y * 65) + 27 + 24; // Adjusted spawn position with border height
 }
 
+let placeWolf = function (character) {
+    let X, Y;
+    let success = false;
+    while (!success) {
+        X = Math.floor(Math.random() * 6) + 1; // Random number between 1 and 6
+        Y = Math.floor(Math.random() * 6) + 1; // Random number between 1 and 6
+
+        // Check if the coordinates coincide with the rows where the main guy is not present
+        if (chessBoard[X][Y] === 'x' &&
+            (Math.abs(X * 75 + 27 + 24 - guy.x) > 48 || Math.abs(Y * 65 + 27 + 24 - guy.y) > 48) &&
+            X !== 3) { // Avoid row 3
+            success = true;
+        }
+    }
+    chessBoard[X][Y] = 'O';
+    character.x = (Y * 75) + 27 + 24; // Adjusted spawn position with border width
+    character.y = (X * 65) + 27 + 24; // Adjusted spawn position with border height
+}
 
 // Reset the game when the player catches a sheep
 let reset = function () {
@@ -549,9 +544,9 @@ let reset = function () {
         placeItem(sheep);
         placeItem(sheep2);
         placeItem(sheep3);
-        placeItem(wolf);
-        placeItem(wolf2);
-        placeItem(wolf3);
+        placeWolf(wolf);
+        placeWolf(wolf2);
+        placeWolf(wolf3);
     }
 
      // Reset sheep present flags
